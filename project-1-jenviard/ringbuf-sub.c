@@ -7,11 +7,11 @@
 #include "ringbuf.h"
 
 /*
- * author: 
- * date: 
+ * author: Jenna
+ * date: 3 sep 2025
  * pledge: this is my own work, unless otherwise noted
  *
- * update: 
+ * update:
  */
 
 
@@ -23,29 +23,52 @@ struct RingBuf rb ;
 
 int rb_ioctl(int op) {
 	switch (op) {
-	case RB_Q_SIZE:
-		return RINGBUF_SIZE ;
-	case RB_IS_EMPTY:
-		return 1 ;
-	case RB_IS_FULL:
-	case RB_Q_COUNT:
-	default:
-		;
+		case RB_Q_SIZE:
+			return RINGBUF_SIZE ;
+		case RB_IS_EMPTY:
+			if (rb.head == rb.tail && !rb.is_full) {
+				return 1 ;
+			}
+			return 0 ;
+		case RB_IS_FULL:
+			return rb.is_full ;
+		case RB_Q_COUNT:
+			if (rb.is_full) {
+				return RINGBUF_SIZE ;
+			} else if (rb.head >= rb.tail) {
+				return rb.head - rb.tail ;
+			} else {
+				return RINGBUF_SIZE - rb.tail + rb.head ;
+			}
+		default:
+			;
 	}
 	return 0 ;
 }
 
 int rb_enqueue(int ele) {
-	/* given element ele of type char, enqueues on the ring buffer.
-	   if successful return ele, else return -1.
-	*/
-	return 0 ;
+	if (rb.is_full) {
+		return -1 ;
+	}
+
+	rb.ringbuf[rb.head] = (char)ele ;
+	rb.head = (rb.head + 1) % RINGBUF_SIZE ;
+
+	if (rb.head == rb.tail) {
+		rb.is_full = 1 ;
+	}
+
+	return ele ;
 }
 
 int rb_dequeue(void) {
-	/* dequeue on the ring buffer.
-	   if successful return ele, else return -1.
-	*/
-	return -1 ;
-}
+	if (rb.head == rb.tail && !rb.is_full) {
+		return -1 ;
+	}
 
+	char ele = rb.ringbuf[rb.tail] ;
+	rb.tail = (rb.tail + 1) % RINGBUF_SIZE ;
+	rb.is_full = 0 ;
+
+	return (int)ele ;
+}
