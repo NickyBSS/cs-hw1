@@ -1,0 +1,111 @@
+Goals
+The goals of this project are:
+To write a ring buffer, reviewing the C concepts of struct, extern and static.
+To review the use of header files, and data structures defined by an API.
+You will receive the template code when you accept the github classroom assignment; and will modify ringbuf.c and ringbuf-sub.c to complete the functionality; then commit and push to github.
+
+There are five files in proj1.
+Makefile: Read this to learn how the programs are complied and tested.
+ringbuf.h: Read this to learn about the data structures and functions that are or will be implemented.
+ringbuf-sub.c: This files contains subroutines focused on ring buffer implementation. The file is compiled to an object file that contains code but cannot run on its own.
+ringbuf.c: This file contains the main program that parses input and calls the functions in ringbuf-sub.c. It is compiled then combined with ringbuf-sub.o.
+ringbuf.ref: The reference output to match against the results of make test.
+The RingBuf Datastructure
+
+The ring buffer structure is defined in the header file, along with function headers for the ring buffer operatins.
+
+Header files are how C implements API's
+It is important to note C does not, by default, initialize any variables. Many futuristic languages do. Some even have a separate value for non-initialized.
+
+However, C does initialize static variables. By default they are zeroed. This can be taken into consideration in the design of a data structure, as we do here.
+
+Besides the array holding the data of the ring buffer, this implementation of the ring buffer has three variables. The data structure invariant for these variables is,
+
+DATA STRUCTURE INVARIANTS
+
+	if rb.head != rb.tail then ring buffer is neither empty nor full
+	if rb.head == rb.tail then the ring buffer is full if rb.is_full, otherwise empty
+	if not full, rb.head is the index of the cell to write into 
+	if not empty, rb.tail is the index of the cell to read from
+Manpage discriptions
+
+
+NAME
+    ringbuf -- implement the ring buffer
+    
+SYNOPSIS
+    ringbuf [-v] _commands_
+		
+DESCRIPTION
+    Creates a ring buffer of characters of default size 16 characters and applies the 
+    enqueue/dequeue commands from string _commands_. The _commands_ string is understood 
+    as follows: 
+	
+    For each character c in _commands_, in order, either:
+        * if the character is a "-", dequeue a character from the ring buffer and 
+          print it; print "empty" if there is no character to dequeue;
+        * if the character is a "+", call each of the ioctl's and print the return
+          values;
+        * else enqueue the character c on the ring buffer and print c; print "full" 
+          if c cannot be enqueued because the ring buffer is full.
+	
+    The following options are available:
+    
+    -v verbose output
+
+OUTPUT
+    The output for enqueue must be the line "enq: _X_", where _X_ is the enqueued
+    character or the word "full". The output for dequeue must be "deq: _X_", where _X_ is
+    the dequeued character or the word "empty". The output for the ioctl query must be
+    "ioc: _X_" where _X_ is the white-space separated result of each of the three ioctl calls, 
+    RB_Q_SIZE, RB_IS_EMPTY, RB_IS_FULL and RB_Q_COUNT.
+
+    If the input is unacceptable, the program will exit with usage message:
+
+        usage: ringbuf [-v] _commands_
+
+HISTORY
+    Reworked in csc421.171 to unify application and kernel variants.
+    Introduced in csc421.161 to prepare for the in-kernel ring buffer 
+    Introduced in csc421.151 as a C warm-up.
+    
+BUGS
+  
+NAME
+    rb_enqueue, rb_dequeue, rb_ioctl - ringbuffer subroutines
+    
+LIBRARY
+    Implemented in ringbuf-sub.c.
+    
+SYNOPSIS
+    #include "ringbuf.h"
+
+    #define RB_Q_SIZE 0
+    #define RB_IS_EMPTY 1
+    #define RB_IS_FULL 2
+    #define RB_Q_COUNT 3
+
+    int rb_ioctl(int op) ; 
+    int rb_enqueue(int ele) ;
+    int rb_dequeue(void) ;
+
+DESCRIPTION
+    rb_enqueue takes a character argument ele and places it in the ringbuffer returning
+    ele if successful; if the queue is full or other error return -1.
+
+    rb_dequeue returns the dequeued element from the queue; if the queue is empty or 
+    other error return -1.
+
+    rb_ioctl performs the ioctl op and returns the result:
+
+        RB_Q_SIZE: returns the size of the queue (always 16).
+        RB_IS_EMPTY: return 1 if the queue is empty, 0 otherwise
+        RB_IS_FULL: return 1 if the queue is full, 0 otherwise
+        RB_Q_COUNT: return the number of items in the queue
+
+    Note that ele is passed as an integer, but it is undefined if it is not in the
+    range of an unsigned character, 0 through 255.
+
+    Note that return character is an integer, but should either be the 
+    integer -1 or in the range of an unsigned character, 0 through 255.
+
